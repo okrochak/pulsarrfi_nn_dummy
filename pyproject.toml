@@ -1,5 +1,5 @@
 [project]
-name = "pulsarrfi_nn"
+name = "pulsarrfi_nn_dummy"
 version = "0.1"
 authors = [
   { name="Tanumoy Saha", email="tanumoy.saha@HTW-Berlin.de" },
