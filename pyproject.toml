@@ -10,4 +10,8 @@ requires = [
    "setuptools",
    "wheel"
 ]
+
+[tool.setuptools]
+package-dir = {"" = "unet_semantic_segmentation/src/pulsar_analysis"}
+
 build-backend = "setuptools.build_meta"
