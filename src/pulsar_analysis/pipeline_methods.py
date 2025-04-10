@@ -66,9 +66,9 @@ class ImageReader:
             do_resize=True,
             resize_size=resize_size,
         )
-        image = image_reader_engine(payload_address=filename)        
-        image = image - image.min()        
-        if image.max() > 0:
+        image = image_reader_engine(payload_address=filename)
+        image = image - min(image.flatten())
+        if np.max(image.flatten()) > 0:
             image = image / np.max(image.flatten())
         return image
 
@@ -111,7 +111,7 @@ class ImageDataSet:
         self,
         image_tag: str,
         image_directory: str,
-        image_reader_engine: ImageReader|PrepareFreqTimeImage = ImageReader(file_type=Payload([])),
+        image_reader_engine: ImageReader = ImageReader(file_type=Payload([])),
     ):
         self._image_tag = image_tag
         self._image_directory = image_directory
@@ -119,7 +119,7 @@ class ImageDataSet:
 
     def __getitem__(self, idx):
         image_address = self._image_directory + self._image_tag.replace("*", str(idx))
-        image = self._image_reader_engine(image_address)
+        image = self._image_reader_engine(filename=image_address)
         return image
 
     def __len__(self):
@@ -195,10 +195,19 @@ class PipelineImageToMask:
         self.__image_to_mask_network = image_to_mask_network
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-        self.__image_to_mask_network = self.__image_to_mask_network.to(self.device)
+        ## Original code
+        # self.__image_to_mask_network = self.__image_to_mask_network.to(self.device)
+        # self.__image_to_mask_network.load_state_dict(
+        #     torch.load(trained_image_to_mask_network_path,map_location=torch.device(self.device),weights_only=True)
+        # )
+
+        ## Force the model to be loaded onto CPU to avoid implementation of parallelization
+        ## on GPUs
+        self.__image_to_mask_network = self.__image_to_mask_network.to("cpu")
         self.__image_to_mask_network.load_state_dict(
-            torch.load(trained_image_to_mask_network_path,map_location=torch.device(self.device),weights_only=True)
+            torch.load(trained_image_to_mask_network_path,map_location=torch.device("cpu"),weights_only=True)
         )
+
         self.__image_to_mask_network.eval()
 
     def __call__(self, image: np.ndarray):
@@ -217,9 +226,22 @@ class PipelineImageToMask:
         image = (
             torch.tensor(image, requires_grad=False).unsqueeze(0).unsqueeze(0).float()
         )
+
+
+        ## Original code
+        # with torch.no_grad():
+        #     pred = self.__image_to_mask_network(image.to(self.device))
+        # pred = pred.to("cpu")
+
+
+        ## The whole forward pass has to be done on CPU. Otherwise you need to implement
+        ## distribute training in the case the model was trained on multiple GPUs.
+
         with torch.no_grad():
-            pred = self.__image_to_mask_network(image.to(self.device))
-        pred = pred.to("cpu")
+            self.__image_to_mask_network = self.__image_to_mask_network.to("cpu")
+            pred = self.__image_to_mask_network(image.to("cpu"))
+
+
         pred_numpy = pred.squeeze().numpy()
         pred_numpy_copy = deepcopy(pred_numpy)
         # binarizer = BinarizeToMask(binarize_func="gaussian_blur")
