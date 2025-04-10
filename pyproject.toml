@@ -14,11 +14,6 @@ dependencies=[
   "pyquaternion>=0.9.9",
   "scikit-image>=0.22.0",
   "pyqt6>=6.0",
-  "torch==2.4.*",
-  "lightning>=2",
-  "torchmetrics>=1.6.0",
-  "torchvision>=0.16.2",
-  "torchaudio>=2.4.0",
 ]
 
 [tool.uv.sources]
