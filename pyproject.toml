@@ -5,13 +5,36 @@ description = "Short description"
 authors = [
     { name="Tanumoy Saha", email="tanumoy.saha@HTW-Berlin.de" }
 ]
-readme = "README.md"
-license = { file = "LICENSE" }
-requires-python = ">=3.8"
-dependencies = []
 
-[tool.setuptools]
-package-dir = { "" = "src" }
+dependencies=[
+  "pulsardt==0.2",
+  "ipywidgets",
+  "tqdm>=4.65",
+  "numpyencoder>=0.3.0",
+  "pyquaternion>=0.9.9",
+  "scikit-image>=0.22.0",
+  "pyqt6>=6.0",
+  "torch==2.4.*",
+  "lightning>=2",
+  "torchmetrics>=1.6.0",
+  "torchvision>=0.16.2",
+  "torchaudio>=2.4.0",
+]
 
-[tool.setuptools.packages.find]
-where = ["src"]
+[tool.uv.sources]
+pulsardt = [{ index = "pulsar-dt"}]
+
+[[tool.uv.index]]
+name = "pulsar-dt"
+url = "https://gitlab.com/api/v4/projects/59840702/packages/pypi/simple"
+explicit = true
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build.backend = "setuptools.build_meta"
+
+# [tool.setuptools]
+# package-dir = { "" = "src" }
+
+# [tool.setuptools.packages.find]
+# where = ["src"]
